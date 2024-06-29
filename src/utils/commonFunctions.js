@@ -20,7 +20,7 @@ export const queryParamsBuilder = (query) => {
 };
 
 let timeout;
-export const debounce = (callback, delay) => {
+export const debounceForSearch = (callback, delay) => {
   clearTimeout(timeout);
   timeout = setTimeout(callback, delay);
 };

@@ -8,8 +8,9 @@ import {
   Skeleton,
   Stack,
   Typography,
+  debounce,
 } from "@mui/material";
-import { debounce } from "../utils/commonFunctions";
+import { debounceForSearch } from "../utils/commonFunctions";
 import { useSearchParams } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -61,7 +62,6 @@ const AllStores = ({ className }) => {
 
     return () => {
       currentRef.removeEventListener("scroll", fetchMoreData);
-      fetchMoreData.cancel();
     };
   }, [
     storeData,
@@ -75,7 +75,7 @@ const AllStores = ({ className }) => {
 
   const onSearch = useCallback(
     (e) => {
-      debounce(() => {
+      debounceForSearch(() => {
         const searchText = e.target.value;
         if (searchText.length === 0) {
           searchParams.delete("name_like");
