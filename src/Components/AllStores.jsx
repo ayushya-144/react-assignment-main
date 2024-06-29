@@ -34,7 +34,7 @@ const AllStores = ({ className }) => {
     originalArgs,
     isError,
   } = useGetAllStoresQuery(
-    cats || name_like ? { cats, name_like } : pagination,
+    cats || name_like ? { cats: cats || null, name_like } : pagination,
     { refetchOnMountOrArgChange: true }
   );
 
