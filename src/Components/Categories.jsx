@@ -1,6 +1,8 @@
 import React from "react";
 import { useGetAllCategoriesQuery } from "../store/apis/categories";
-import { Stack, Grid, Skeleton } from "@mui/material";
+import Stack from "@mui/material/Stack";
+import Grid from "@mui/material/Grid";
+import Skeleton from "@mui/material/Skeleton";
 import { useSearchParams } from "react-router-dom";
 
 const Categories = ({ className }) => {

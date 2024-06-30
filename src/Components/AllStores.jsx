@@ -1,18 +1,29 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useGetAllStoresQuery } from "../store/apis/stores";
-import {
-  Grid,
-  IconButton,
-  InputBase,
-  Paper,
-  Skeleton,
-  Stack,
-  Typography,
-  debounce,
-} from "@mui/material";
+import FormControl from "@mui/material/FormControl";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import InputBase from "@mui/material/InputBase";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import Select from "@mui/material/Select";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import {debounce} from "@mui/material";
 import { debounceForSearch } from "../utils/commonFunctions";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useSearchParams } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
+
+const STORE_SORTS = [
+  { title: "Name", key: "name" },
+  { title: "Featured", key: "featured", order: "asc" },
+  { title: "Featured", key: "featured", order: "desc" },
+  { title: "Clicks", key: "clicks" },
+];
 
 const AllStores = ({ className }) => {
   const [pagination, setPagination] = useState({
@@ -21,9 +32,14 @@ const AllStores = ({ className }) => {
   });
   const [searchParams, setSearchParams] = useSearchParams();
   const [lazyData, setLazyData] = useState([]);
+  const [bookmarkedData, setBookMarkedData] = useState(
+    JSON.parse(localStorage.getItem("bookmarkedData")) || []
+  );
   const cats = Number(searchParams.get("cat"));
   const name_like = searchParams.get("name_like");
   const containerRef = useRef();
+
+  console.log(JSON.parse(localStorage.getItem("bookmarkedData")));
 
   // Get All Stores API Call
   const {
@@ -34,7 +50,14 @@ const AllStores = ({ className }) => {
     originalArgs,
     isError,
   } = useGetAllStoresQuery(
-    cats || name_like ? { cats: cats || null, name_like } : pagination,
+    {
+      _sort: searchParams.get("_sort") || STORE_SORTS[0].key,
+      order: searchParams.get("_order"),
+      name_like,
+      cats: cats || null,
+      ...pagination,
+    },
+    // cats || name_like ? { cats: cats || null, name_like } : pagination,
     { refetchOnMountOrArgChange: true }
   );
 
@@ -91,6 +114,8 @@ const AllStores = ({ className }) => {
   useEffect(() => {
     if (
       (storeData?.length && !lazyData?.length) ||
+      // searchParams.get("_sort") ||
+      // searchParams.get("_order") ||
       cats ||
       name_like ||
       pagination?._page === 1
@@ -102,7 +127,14 @@ const AllStores = ({ className }) => {
         return Array.from(uniqueData);
       });
     }
-  }, [storeData, lazyData?.length, name_like, cats, pagination?._page]);
+  }, [
+    storeData,
+    lazyData?.length,
+    name_like,
+    cats,
+    pagination?._page,
+    // searchParams,
+  ]);
 
   if (isError) {
     return (
@@ -111,6 +143,21 @@ const AllStores = ({ className }) => {
       </div>
     );
   }
+
+  const handleBookmarkToggle = (store) => {
+    setBookMarkedData((prevBMData) => {
+      let updatedBMData;
+      if (prevBMData.includes(store.id)) {
+        updatedBMData = prevBMData.filter((id) => id !== store.id);
+      } else {
+        updatedBMData = [...prevBMData, store.id];
+      }
+      localStorage.setItem("bookmarkedData", JSON.stringify(updatedBMData));
+      return updatedBMData;
+    });
+  };
+
+  console.log(bookmarkedData);
 
   return (
     <div className={`my-[50px] ${className}`}>
@@ -123,11 +170,12 @@ const AllStores = ({ className }) => {
         ref={containerRef}
         position="relative"
       >
-        <Grid item xs={12} position="sticky" top={0}>
-          <Stack width="100%">
+        <Grid item xs={12} position="sticky" top={0} zIndex={100}>
+          <Stack width="100%" flexDirection="row" gap={2}>
             <Paper
               component="form"
               sx={{
+                width: "70%",
                 p: "2px 4px",
                 display: "flex",
                 alignItems: "center",
@@ -143,6 +191,61 @@ const AllStores = ({ className }) => {
                 placeholder="Search Stores"
               />
             </Paper>
+            <Paper
+              component="form"
+              sx={{
+                width: "30%",
+                p: "2px 4px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">Age</InputLabel>
+                <Select
+                  variant="standard"
+                  sx={{ width: "100%" }}
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={
+                    STORE_SORTS?.find((item) => {
+                      if (searchParams.get("_order")) {
+                        return (
+                          item?.key === searchParams.get("_sort") &&
+                          item?.order === searchParams.get("_order")
+                        );
+                      }
+                      return item?.key === searchParams.get("_sort");
+                    }) || STORE_SORTS[0]
+                  }
+                  placeholder="Age"
+                  label="Filter"
+                  onChange={(e, newValue) => {
+                    const menuItem = e.target.value;
+                    searchParams.set("_sort", menuItem?.key);
+                    if (menuItem?.order) {
+                      searchParams.set("_order", menuItem?.order);
+                    } else {
+                      searchParams.delete("_order");
+                    }
+                    setSearchParams(searchParams);
+                  }}
+                >
+                  {STORE_SORTS?.map((menuItem, index) => {
+                    return (
+                      <MenuItem key={index} value={menuItem}>
+                        {menuItem?.title}{" "}
+                        {menuItem?.order
+                          ? menuItem?.order === "asc"
+                            ? "Ascending"
+                            : "Desceding"
+                          : ""}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </Paper>
           </Stack>
         </Grid>
         {isLoading ? (
@@ -153,8 +256,10 @@ const AllStores = ({ className }) => {
           ))
         ) : lazyData?.length > 0 ? (
           lazyData?.map((store) => (
-            <Grid item xs={4} key={store.id} overflow="hidden">
+            <Grid item xs={4} key={store?.id}>
               <Stack
+                onClick={() => window.open(store?.homepage, "_blank")}
+                borderRadius={4}
                 height="200px"
                 boxShadow="0 1px 1px rgba(0,0,0,0.12), 0 2px 2px rgba(0,0,0,0.12)"
                 justifyContent="center"
@@ -169,8 +274,22 @@ const AllStores = ({ className }) => {
                     transform: "scale(1.03)",
                   },
                 }}
+                position="relative"
                 gap={1}
               >
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBookmarkToggle(store);
+                  }}
+                  sx={{ position: "absolute", top: 5, right: 5 }}
+                >
+                  {bookmarkedData?.includes(store.id) ? (
+                    <FavoriteIcon />
+                  ) : (
+                    <FavoriteBorderIcon />
+                  )}
+                </IconButton>
                 <img
                   src={store.logo}
                   alt={store?.name}
@@ -179,7 +298,18 @@ const AllStores = ({ className }) => {
                   }}
                 />
                 <Typography textAlign="center">{store?.name}</Typography>
-                <Typography>CashBack String</Typography>
+                <Stack>
+                  <Typography textAlign="center" fontWeight={600}>
+                    Cashback:
+                  </Typography>
+                  <Typography textAlign="center">
+                    {Boolean(store?.cashback_enabled)
+                      ? store?.amount_type === "fixed"
+                        ? `${store?.cashback_amount.toFixed(2)}$`
+                        : `${store?.cashback_amount.toFixed(2)}%`
+                      : "No cashback available"}
+                  </Typography>
+                </Stack>
               </Stack>
             </Grid>
           ))
