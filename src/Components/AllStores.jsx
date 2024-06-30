@@ -11,7 +11,7 @@ import Select from "@mui/material/Select";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import {debounce} from "@mui/material";
+import { debounce } from "@mui/material";
 import { debounceForSearch } from "../utils/commonFunctions";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -38,8 +38,6 @@ const AllStores = ({ className }) => {
   const cats = Number(searchParams.get("cat"));
   const name_like = searchParams.get("name_like");
   const containerRef = useRef();
-
-  console.log(JSON.parse(localStorage.getItem("bookmarkedData")));
 
   // Get All Stores API Call
   const {
@@ -156,8 +154,6 @@ const AllStores = ({ className }) => {
       return updatedBMData;
     });
   };
-
-  console.log(bookmarkedData);
 
   return (
     <div className={`my-[50px] ${className}`}>

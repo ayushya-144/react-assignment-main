@@ -8,14 +8,11 @@ import { useSearchParams } from "react-router-dom";
 const Categories = ({ className }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedCategoryId = Number(searchParams.get("cat"));
-  console.log(selectedCategoryId);
 
   const { data, isLoading, isError, error } = useGetAllCategoriesQuery();
 
   const handleCategoryChange = (categoryId) => {
-    console.log(selectedCategoryId);
     if (categoryId === selectedCategoryId) {
-      console.log("object");
       searchParams.delete("cat");
       return setSearchParams(searchParams);
     }

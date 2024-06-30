@@ -10,7 +10,6 @@ export const storesApi = createApi({
   endpoints: (builder) => ({
     getAllStores: builder.query({
       query: (filters) => {
-        console.log(queryParamsBuilder(filters));
         return {
           // url: `/stores?_page=${pagination?.page}&_limit=${pagination?.limit}`,
           url: `/stores${queryParamsBuilder(filters)}`,
